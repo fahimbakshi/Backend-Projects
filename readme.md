@@ -44,15 +44,15 @@ http://localhost:8000//api/v1/users/registerUser -> /api/v1/user is from app.js 
 
 # video 13 ->
 # logic building in controller :-in -> "const registerUser" we write logic code  based on given bellow->
-get user detail from fruntend(we will test this from postman)
-validation on fildes -not empty
-check if user already exist :- check from username,email
-check fro images ,check for avater
-uplode them to cloudinary,(check of avtar is uplode)(we added check on cloudinary) 
-create user objects - create entry in db
-remove password and refresh token field from response   
-check for user creation 
-return resopnse (if not return then send error)
+1)get user detail from fruntend(we will test this from postman)
+2)validation on fildes -not empty
+3)check if user already exist :- check from username,email
+4)check fro images ,check for avater
+5)uplode them to cloudinary,(check of avtar is uplode)(we added check on cloudinary) 
+6)create user objects - create entry in db
+7)remove password and refresh token field from response   
+8)check for user creation 
+9)return resopnse (if not return then send error)
 
 
 
