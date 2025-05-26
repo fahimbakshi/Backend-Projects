@@ -44,16 +44,36 @@ http://localhost:8000//api/v1/users/registerUser -> /api/v1/user is from app.js 
 
 # video 13 ->
 # logic building in controller :-in -> "const registerUser" we write logic code  based on given bellow->
-1)get user detail from fruntend(we will test this from postman)
-2)validation on fildes -not empty
-3)check if user already exist :- check from username,email
-4)check fro images ,check for avater
-5)uplode them to cloudinary,(check of avtar is uplode)(we added check on cloudinary) 
-6)create user objects - create entry in db
-7)remove password and refresh token field from response   
-8)check for user creation 
-9)return resopnse (if not return then send error)
+1) get user detail from fruntend(we will test this from postman)
+2) validation on fildes -not empty
+3) check if user already exist :- check from username,email
+4) check fro images ,check for avater
+5) uplode them to cloudinary,(check of avtar is uplode)(we added check on cloudinary) 
+6) create user objects - create entry in db
+7) remove password and refresh token field from response   
+8) check for user creation 
+9) return resopnse (if not return then send error)
 
+# video 14 -> 
+# resolver some error and some change in code 
+# detail explantion of postman tool IMP video,from video time (25:00)(30:00)
+
+# video 15 ->
+# writing logic for loginuser
+1) bring data from req body  (req body->data)
+2) check username or email (based on you which you chose)
+3) find the user
+4) if user exist , then check password
+5) if passsword is wrong throw error, if correct then access and refresh token get genrate and send to user
+6) send those token in cookie , in end youu can send res -> successfuly logedin
+
+# writing code for logout user
+# making new middelware file fro logout "auth.middelware.js"-> this will varify that user is there or not 
+# seerch in jwt website for learning about the authorization of token (in introduction part of jwt website you get the syntax of it)-> Authorization: bearer <token> (critical topic watch video) 
+# watch video for understing JWT consept
+
+# video 16 -> 
+# writig code fro refresh token (refresh access token)
 
 
 

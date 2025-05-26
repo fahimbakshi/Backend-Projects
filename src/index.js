@@ -1,4 +1,34 @@
-       // hera we useing two type of approch to connect with DB 
+// hear we writw new code which is runnig ,and remaining code is for practice
+// require('dotenv').config({path: './env'})
+import dotenv from "dotenv"
+import connectDB from "./db/db.js"
+import {app} from './app.js'
+dotenv.config({
+    path: './env'
+})
+
+
+
+connectDB()
+.then(() => {
+    app.listen(process.env.PORT || 5000, () => {
+        console.log(` Server is running at port : ${process.env.PORT}`);
+    })
+})
+.catch((err) => {
+    console.log("MONGO db connection failed !!! ", err);
+})
+
+
+
+
+
+
+
+
+
+
+// hera we useing two type of approch to connect with DB 
 // require('dotenv').config({path:'./env'})  //this is from 2 approch we can write this in formated manner showen bellow
 // import dotenv, { config } from "dotenv"  //(2)
 
@@ -26,26 +56,26 @@
 
 
 
-//*new code  (runing /runing  code)
+//*new code  (runing /runing  code)(code is not exicuting,but runing at terminal)
 
-import express from 'express';
-import connectDB from "./db/db.js"; // Adjust path if necessary
+// import express from 'express';
+// import connectDB from "./db/db.js"; // Adjust path if necessary
 
-const app = express();
+// const app = express();
 
-// Connect to MongoDB
-connectDB();
+// // Connect to MongoDB
+// connectDB();
 
-// Set up your app routes and middlewares
-app.get('/', (req, res) => {
-  res.send('MongoDB Connection Established!');
-});
+// // Set up your app routes and middlewares
+// app.get('/', (req, res) => {
+//   res.send('MongoDB Connection Established!');
+// });
 
-// Start the server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// // Start the server
+// const PORT = process.env.PORT || 5000;
+// app.listen(PORT, () => {
+//   console.log(`Server running on port ${PORT}`);
+// });
 
 
 
