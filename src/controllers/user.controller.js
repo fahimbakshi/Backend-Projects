@@ -2,7 +2,7 @@ import { asynchandler } from "../utils/asynchandler.js"; //we taken the asynchan
 import {ApiError} from  "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
 import{uploadOnCloudnary} from "../utils/cloudnary.js"
-import{ApiResponse} from "../utils/ApiResponse"; //to return response at the end  
+import{ApiResponse} from "../utils/ApiResponse.js"; //to return response at the end  
 import req from "express/lib/request.js";
 import jwt from "jsonwebtoken"
 

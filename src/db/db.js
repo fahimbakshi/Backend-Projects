@@ -25,23 +25,39 @@
 //* main running code , this code will be alwase same for every databse
 
 import mongoose from "mongoose";
+import {DB_NAME} from "../constants.js";
 import dotenv from 'dotenv';
 
 dotenv.config(); // Load environment variables from .env file
 
 const connectDB = async () => {
-  try {
-    const connectionURI = process.env.MONGODB_URI; // Get the URI from the .env file
-    console.log('Connecting to MongoDB...');
-
-    // Mongoose 6.x automatically handles connection options
-    const connectionInstance = await mongoose.connect(connectionURI);
-
-    console.log(`MongoDB connected! DB host: ${connectionInstance.connection.host}`);
-  } catch (error) {
-    console.log("MONGODB connection error:", error);
-    process.exit(1); // Exit process if there's a connection error
-  }
-};
+    try {
+        const connectionInstance = await mongoose.connect(`${process.env.MONGODB_URI}/${DB_NAME}`)
+        console.log(`\n MongoDB connected !! DB HOST: ${connectionInstance.connection.host}`);
+    } catch (error) {
+        console.log("MONGODB connection FAILED ", error);
+        process.exit(1)
+    }
+}
 
 export default connectDB;
+
+
+
+
+//just chenjed code this code not have any ishu
+
+// const connectDB = async () => {
+//   try {
+//     const connectionURI = process.env.MONGODB_URI; // Get the URI from the .env file
+//     console.log('Connecting to MongoDB...');
+
+//     // Mongoose 6.x automatically handles connection options
+//     const connectionInstance = await mongoose.connect(connectionURI);
+
+//     console.log(`MongoDB connected! DB host: ${connectionInstance.connection.host}`);
+//   } catch (error) {
+//     console.log("MONGODB connection error:", error);
+//     process.exit(1); // Exit process if there's a connection error
+//   }
+// };

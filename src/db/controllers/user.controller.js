@@ -1,14 +1,14 @@
-import { asynchandler } from "../utils/asynchandler.js"; //we taken the asynchandler.js filr from utils folder
+// import { asynchandler } from "../utils/asynchandler.js"; //we taken the asynchandler.js filr from utils folder
 
-//demo code:-
+// //demo code:-
 
-const registerUser = asynchandler(async(req,res) =>{
-    console.log("error");
+// const registerUser = asynchandler(async(req,res) =>{
+//     console.log("error");
     
-    res.status(200).json({
-        message:"ok"
-    })
-})
+//     res.status(200).json({
+//         message:"ok"
+//     })
+// })
 
 
 //logical of thi code is writen in "readme.md file check video->13"
