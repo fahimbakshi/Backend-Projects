@@ -99,7 +99,7 @@ const registerUser = asynchandler(async(req,res) =>{
     })
  
     //useing select() we select the element which we dont want 
-    const createdUser = await user.findById(user._id).select("-password -refreshToken")
+    const createdUser = await user.findById(user._id).select("-password -refreshToken")//in this select function "-"(negative)this sentax used,to not select that fealds
     
     if (!createdUser) { //validation / cheaking /check for user creation 
         throw new ApiError(500,"somthing went wrong while regrestring the user");
@@ -108,7 +108,7 @@ const registerUser = asynchandler(async(req,res) =>{
      
     //return response
     return res.status(201).json(
-           new ApiResponse(200,createdUser,"user registered successfully")//this is from Apiresponse file from util folder
+         new ApiResponse(200,createdUser,"user registered successfully")//this is from Apiresponse file from util folder
     )
     
      })

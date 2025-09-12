@@ -59,7 +59,7 @@ userSchema.pre("save",async function(next) {
 }) //using hook of mongoose (see document of hook)
 
 userSchema.methods.isPasswordCorrect = async function(passsword){
-    return await bcrypt.compare(password,this.passsword)
+    return await bcrypt.compare(passsword,this.passsword)
 } //made custon method from mongoose
 
 userSchema.methods.generateAccessToken = function(){
