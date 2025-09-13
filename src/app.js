@@ -11,7 +11,7 @@ app.use(cors({
 
 app.use(express.json({limit:"16kb"}))
 
-app.use(express.urlencoded({extended :true , limit :"16kb"})) //making another cnfigure, which form ,when data coms from url
+app.use(express.urlencoded({extended :true , limit :"16kb"})) //making another cnfigure, which from ,when data coms from url
 app.use(express.static("public"))//from saving files , image,etc "public" is aur folder which stores that data   
 
 app.use(cookieParser())//to access the cookies of user by server
