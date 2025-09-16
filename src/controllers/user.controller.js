@@ -3,7 +3,6 @@ import {ApiError} from  "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
 import{uploadOnCloudnary} from "../utils/cloudnary.js"
 import{ApiResponse} from "../utils/ApiResponse.js"; //to return response at the end  
-import req from "express/lib/request.js";
 import jwt from "jsonwebtoken"
 
 //demo code:-
@@ -16,33 +15,35 @@ import jwt from "jsonwebtoken"
 //     })
 // })
 
-const generateAccessAndRefereshTokens = async(userId)=>  //we gate userId from user (we have access of "user",code writen down)
-   { 
-    try {
-       const user = await User.findById(userId) //now we have user document using this 
-       //we gate access and refersh token from "user.model.js"
-       const accessToken =user.generateAccessToken()
-       const refreshToken =user.generateRefreshToken()
+// const generateAccessAndRefereshTokens = async(userId)=>  //we gate userId from user (we have access of "user",code writen down)
+//    { 
+//     try {
+//        const user = await User.findById(userId) //now we have user document using this 
+//        //we gate access and refersh token from "user.model.js"
+//        const accessToken =user.generateAccessToken()
+//        const refreshToken =user.generateRefreshToken()
 
-      //adding values in objesct
-      user.refreshToken =refreshToken
-      user.save({ validateBeforeSave:false }) //vase the vale in object//save in database 
+//       //adding values in objesct
+//       user.refreshToken =refreshToken
+//       user.save({ validateBeforeSave:false }) //vase the vale in object//save in database 
       
-      return{accessToken,refreshToken}
+//       return{accessToken,refreshToken}
 
 
-   } catch (error) {
-      throw new ApiError(500,"something went wrong while generating refresh and access token");
+//    } catch (error) {
+//       throw new ApiError(500,"something went wrong while generating refresh and access token");
       
-   }
-}
+//    }
+// }
 
 
 //logical of this code is writen in "readme.md file check video->13" //this is for registeruser
 const registerUser = asynchandler(async(req,res) =>{
-       const{fullName,email,userName,password}= req.body
+       const{fullName,email,username,password}= req.body
        console.log("email",email);
-    
+       console.log("BODY:", req.body);
+       console.log("FILES:", req.files);
+
     //used from single declarartion of error   
     //    if (fullName === "") {
     //      throw new ApiError(400,"full name is  required")
@@ -50,7 +51,7 @@ const registerUser = asynchandler(async(req,res) =>{
 
     //from multiple delclaring error
     if (    //validations
-        [fullName,email,userName,password].some((field)=>field?.trim() === "")
+        [fullName,email,username,password].some((field)=>field?.trim() === "")
     ) {
         throw new ApiError(400,"all fiends is required")
     }
@@ -58,7 +59,7 @@ const registerUser = asynchandler(async(req,res) =>{
 
      //cheking for user alreadyexist
      const existedUser= await User.findOne({
-        $or:[{ userName },{ email }]
+        $or:[{ username },{ email }]
      })
 
      if (existedUser) {
@@ -72,20 +73,21 @@ const registerUser = asynchandler(async(req,res) =>{
      const avatarLocalPath=req.files?.avatar[0]?.path //multer give the path of image/avatar //check every code using cansole.log
     //  const coverImageLocalPath=req.files?coverImage[0]?.path   //after comenting this code get error free,see video for understing
 
+        let coverImageLocalPath;
+    if(req.files && Array.isArray(req.files.coverImage) && 
+        req.files.coverImage.length>0){
+        coverImageLocalPath = req.files.coverImage[0].path
+    } //this code will resolve the error of "const coverImage"
+
      if (!avatarLocalPath) {
         throw new ApiError(400,"avatar file is required");
      }
 
-     const avatar=await uploadOnCloudnary(avatarLocalPath)
-   //   const coverImage= await uploadOnCloudnary(coverImageLocalPath) //this can throw error,for this we write new method down
-
-    let coverImageLocalPath;
-    if(req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0){
-        coverImageLocalPath = req.files.coverImage[0].path
-    } //this code will resolve the error of "const coverImage"
+     const avatar = await uploadOnCloudnary(avatarLocalPath);
+     const coverImage= await uploadOnCloudnary(coverImageLocalPath) //this can throw error,for this we write new method down
     
-     if(!avatar){  //avatr validation
-        throw new ApiError(400,"avater is required");
+     if(!avatar || !avatar.url){  //avatr validation
+        throw new ApiError(400,"avatar is required");
      }
 
     //  create user objects - create entry in db
@@ -95,10 +97,10 @@ const registerUser = asynchandler(async(req,res) =>{
         coverImage:coverImage?.url || "", //check if coverImage present if present then take url if not remain empty""
         email,
         password,
-        userName:userName.toLowerCase()   
+        username:username.toLowerCase()   
     })
- 
-    //useing select() we select the element which we dont want 
+    console.log("✅ Inserted user into MongoDB:", user);
+    //useing select() we select the element which we dont want or want
     const createdUser = await user.findById(user._id).select("-password -refreshToken")
     
     if (!createdUser) { //validation / cheaking /check for user creation 
@@ -113,110 +115,110 @@ const registerUser = asynchandler(async(req,res) =>{
     
      })
 
-//this code is for loginuser ,video->15,logic of this code writen in "readme.md"file
-const loginuser = asynchandler(async(req,res)=>{
-      //req body ->data
-      const {email,userName,password} = req.body
+// //this code is for loginuser ,video->15,logic of this code writen in "readme.md"file
+// const loginuser = asynchandler(async(req,res)=>{
+//       //req body ->data
+//       const {email,userName,password} = req.body
 
-      if (!email && !userName) {
-         throw new ApiError(400,"userName or email is required")
-      }
-      //if we have this both then can login,for that we have to find the user in database,code is below
-     const user = await User.findOne({ //User is imported from model.js file
-         $or : [{userName},{email}] //hear we can pass obj's in array 
-      })
+//       if (!email && !userName) {
+//          throw new ApiError(400,"userName or email is required")
+//       }
+//       //if we have this both then can login,for that we have to find the user in database,code is below
+//      const user = await User.findOne({ //User is imported from model.js file
+//          $or : [{userName},{email}] //hear we can pass obj's in array 
+//       })
 
-      if (!user) { //if user not found then is will get exicute 
-         throw new ApiError( 404,"user does not exist");
+//       if (!user) { //if user not found then is will get exicute 
+//          throw new ApiError( 404,"user does not exist");
          
-      }
+//       }
 
-      //if we get user then check passeord
-      const isPasswordvalid =await user.isPasswordCorrect(password) //we gate the password from ispasswordCorrect which is from "user.model.js" file
+//       //if we get user then check passeord
+//       const isPasswordvalid =await user.isPasswordCorrect(password) //we gate the password from ispasswordCorrect which is from "user.model.js" file
       
-      if (!isPasswordvalid) { //if pssword is invalid 
-         throw new ApiError( 401,"password id incorrect")
-      }
+//       if (!isPasswordvalid) { //if pssword is invalid 
+//          throw new ApiError( 401,"password id incorrect")
+//       }
 
-      //after chacking password make access and refresh token 
-      //we make methood at top of the code name as:"generateAccessAndRefereshTokens" 
-      const {accessToken,ReferenceError}= await generateAccessAndRefereshTokens(user._id)
+//       //after chacking password make access and refresh token 
+//       //we make methood at top of the code name as:"generateAccessAndRefereshTokens" 
+//       const {accessToken,ReferenceError}= await generateAccessAndRefereshTokens(user._id)
 
-      const logedInUser=await User.findById(user.id).select("-password -refreshToken")
+//       const logedInUser=await User.findById(user.id).select("-password -refreshToken")
 
-      //sending cookies
-      const optins={
-         httpOnly:true,
-         secure:true
-      }
+//       //sending cookies
+//       const optins={
+//          httpOnly:true,
+//          secure:true
+//       }
       
-      return res .status(200)
-      .cookie("accessToken",accessToken,optins) //cookies method we get from aur "cookie-parser"(see)
-      .cookie("refreshToken",refreshToken,optins)
-      .json(
-         new ApiResponse(
-            200,
-            {
-                user:logedInUser,accessToken,refreshToken  
-            },
-            "user logedin successfully"
-         )
-      )
+//       return res .status(200)
+//       .cookie("accessToken",accessToken,optins) //cookies method we get from aur "cookie-parser"(see)
+//       .cookie("refreshToken",refreshToken,optins)
+//       .json(
+//          new ApiResponse(
+//             200,
+//             {
+//                 user:logedInUser,accessToken,refreshToken  
+//             },
+//             "user logedin successfully"
+//          )
+//       )
 
-})
+// })
 
-//code for logout 
-const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing refreshToken from DB
-   await User.findByIdAndUpdate(
-      req.user._id, //finding id
-      {
-         $set:{   //this is mongoose operatore to cange or update
-            refreshToken: undefined
-         } 
-      },
-      {
-         new:true     //using this we gate nwe value in response,after undefin the token
-      } 
-   ) 
-   //cookise
-   const optins={
-      httpOnly:true,
-      secure:true
-   }
-   //now clare the cookies
-    return res
-    .status(200)
-    .clearCookies("accessToken",optins)
-    .clearCookies("refreshToken",optins)
-    .json(new ApiResponse(200,{},"user logrd out"))
-}) 
+// //code for logout 
+// const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing refreshToken from DB
+//    await User.findByIdAndUpdate(
+//       req.user._id, //finding id
+//       {
+//          $set:{   //this is mongoose operatore to cange or update
+//             refreshToken: undefined
+//          } 
+//       },
+//       {
+//          new:true     //using this we gate nwe value in response,after undefin the token
+//       } 
+//    ) 
+//    //cookise
+//    const optins={
+//       httpOnly:true,
+//       secure:true
+//    }
+//    //now clare the cookies
+//     return res
+//     .status(200)
+//     .clearCookies("accessToken",optins)
+//     .clearCookies("refreshToken",optins)
+//     .json(new ApiResponse(200,{},"user logrd out"))
+// }) 
 
-//code for refresh access Token //for be logedin continue login user 
-const refreshAccessToken = asynchandler(async(req,res)=>
-   {
-      const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken 
+// //code for refresh access Token //for be logedin continue login user 
+// const refreshAccessToken = asynchandler(async(req,res)=>
+//    {
+//       const incomingRefreshToken = req.cookie.refreshToken || req.body.refreshToken 
 
 
-      if (!incomingRefreshToken) {
-         throw new ApiError(401,"unauthorized request");
-      }
+//       if (!incomingRefreshToken) {
+//          throw new ApiError(401,"unauthorized request");
+//       }
 
-      const decodedToken =jwt.verify(
-         incomingRefreshToken,
-         process.env.REFRESH_TOKEN_SECRET
-      )
+//       const decodedToken =jwt.verify(
+//          incomingRefreshToken,
+//          process.env.REFRESH_TOKEN_SECRET
+//       )
 
-      const user = await user.findById(decodedToken?._id)
+//       const user = await user.findById(decodedToken?._id)
       
-      if (!user) {
-         throw new ApiError(401,"invalid refresh token");
-      }
-})
+//       if (!user) {
+//          throw new ApiError(401,"invalid refresh token");
+//       }
+// })
 
 export{
    registerUser,
-   loginuser,
-   logoutUser
+   // loginuser,
+   // logoutUser
 }
 
 
