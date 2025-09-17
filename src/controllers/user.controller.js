@@ -40,7 +40,7 @@ import jwt from "jsonwebtoken"
 //logical of this code is writen in "readme.md file check video->13" //this is for registeruser
 const registerUser = asynchandler(async(req,res) =>{
        const{fullName,email,username,password}= req.body
-       console.log("email",email);
+    //    console.log("email",email);
        console.log("BODY:", req.body);
        console.log("FILES:", req.files);
 
@@ -86,8 +86,8 @@ const registerUser = asynchandler(async(req,res) =>{
      const avatar = await uploadOnCloudnary(avatarLocalPath);
      const coverImage= await uploadOnCloudnary(coverImageLocalPath) //this can throw error,for this we write new method down
     
-     if(!avatar || !avatar.url){  //avatr validation
-        throw new ApiError(400,"avatar is required");
+     if(!avatar ){  //avatr validation
+        throw new ApiError(400,"avatar file is required");
      }
 
     //  create user objects - create entry in db
@@ -101,7 +101,8 @@ const registerUser = asynchandler(async(req,res) =>{
     })
     console.log("✅ Inserted user into MongoDB:", user);
     //useing select() we select the element which we dont want or want
-    const createdUser = await user.findById(user._id).select("-password -refreshToken")
+    // const createdUser = await user.findById(user._id).select("-password -refreshToken")
+    const createdUser = await user.toObject(user._id).select("-password -refreshToken")
     
     if (!createdUser) { //validation / cheaking /check for user creation 
         throw new ApiError(500,"somthing went wrong while regrestring the user");

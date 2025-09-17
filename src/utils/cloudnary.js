@@ -3,9 +3,9 @@ import fs from "fs"
 
 
 cloudinary.config({
-    cloud_name:process.env.CLOUDNARY_CLOUD_NAME,
-    api_key:process.env.CLOUDNARY_API_KEY,
-    api_secret:process.env.CLOUDNARY_API_SECRET,
+    cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
+    api_key:process.env.CLOUDINARY_API_KEY,
+    api_secret:process.env.CLOUDINARY_API_SECRET,
 });
 
 
@@ -18,8 +18,9 @@ const uploadOnCloudnary =async(localFiilePath)=>{
         }) 
         //filr has been uploded successfull
         console.log("filr is uploded secessfully on cloudnary",response.url); 
-        // fs.unlinkSync(localFiilePath)
+        // fs.unlinkSync(localFiilePath) //after code run successfully uncommet thsi line
         return response;
+
     } catch (error) {
         fs.unlinkSync(localFiilePath)//remove local saved temporary file as the upload operation got faield
         return null;
