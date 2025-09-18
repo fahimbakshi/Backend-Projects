@@ -12,19 +12,27 @@ cloudinary.config({
 const uploadOnCloudnary =async(localFiilePath)=>{
     try {
         if (!localFiilePath) return null
+
+        // Fix for Windows paths (convert \ to /)
+        const normalizedPath = localFiilePath.replace(/\\/g, "/");
+
         //update the file on cloudnary
-       const response = await cloudinary.uploader.upload(localFiilePath,{     //this method is referanced from cloudnary, we take this all in variable(response)      
-            resource_type:'auto' //hear we can add tipe of uplode file 
+       const response = await cloudinary.uploader.upload(normalizedPath,{     //this method is referanced from cloudnary, we take this all in variable(response)      
+            resource_type:'auto', //hear we can add tipe of uplode file 
+            timeout: 120000, // 120 seconds
         }) 
         //filr has been uploded successfull
         console.log("filr is uploded secessfully on cloudnary",response.url); 
-        // fs.unlinkSync(localFiilePath) //after code run successfully uncommet thsi line
+        fs.unlinkSync(localFiilePath) //after code run successfully uncommet thsi line
         return response;
 
     } catch (error) {
-        fs.unlinkSync(localFiilePath)//remove local saved temporary file as the upload operation got faield
-        return null;
+      console.error("Cloudinary upload failed:", error);
+        if (fs.existsSync(localFiilePath)) {
+      fs.unlinkSync(localFiilePath);
     }
+    return null;
+}
 }
 
 export{uploadOnCloudnary}

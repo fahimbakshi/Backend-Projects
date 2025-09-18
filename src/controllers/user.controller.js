@@ -15,26 +15,26 @@ import jwt from "jsonwebtoken"
 //     })
 // })
 
-// const generateAccessAndRefereshTokens = async(userId)=>  //we gate userId from user (we have access of "user",code writen down)
-//    { 
-//     try {
-//        const user = await User.findById(userId) //now we have user document using this 
-//        //we gate access and refersh token from "user.model.js"
-//        const accessToken =user.generateAccessToken()
-//        const refreshToken =user.generateRefreshToken()
+const generateAccessAndRefereshTokens = async(userId)=>  //we gate userId from user (we have access of "user",code writen down)
+   { 
+    try {
+       const user = await User.findById(userId) //now we have user document using this 
+       //we gate access and refersh token from "user.model.js"
+       const accessToken =user.generateAccessToken()
+       const refreshToken =user.generateRefreshToken()
 
-//       //adding values in objesct
-//       user.refreshToken =refreshToken
-//       user.save({ validateBeforeSave:false }) //vase the vale in object//save in database 
+      //adding values in objesct
+      user.refreshToken =refreshToken
+      await user.save({ validateBeforeSave:false }) //save the vale in object//save in database 
       
-//       return{accessToken,refreshToken}
+      return{accessToken,refreshToken}
 
 
-//    } catch (error) {
-//       throw new ApiError(500,"something went wrong while generating refresh and access token");
+   } catch (error) {
+      throw new ApiError(500,"something went wrong while generating refresh and access token");
       
-//    }
-// }
+   }
+}
 
 
 //logical of this code is writen in "readme.md file check video->13" //this is for registeruser
@@ -65,7 +65,7 @@ const registerUser = asynchandler(async(req,res) =>{
      if (existedUser) {
         throw new ApiError(409,"user name or email allready exist")
      }
-     console.log(req.file);
+   //   console.log(req.file);
 
 
 
@@ -101,8 +101,8 @@ const registerUser = asynchandler(async(req,res) =>{
     })
     console.log("✅ Inserted user into MongoDB:", user);
     //useing select() we select the element which we dont want or want
-    // const createdUser = await user.findById(user._id).select("-password -refreshToken")
-    const createdUser = await user.toObject(user._id).select("-password -refreshToken")
+    const createdUser = await User.findById(user._id).select("-password -refreshToken")
+   //  const createdUser = await user.toObject(user._id).select("-password -refreshToken")
     
     if (!createdUser) { //validation / cheaking /check for user creation 
         throw new ApiError(500,"somthing went wrong while regrestring the user");
@@ -117,82 +117,82 @@ const registerUser = asynchandler(async(req,res) =>{
      })
 
 // //this code is for loginuser ,video->15,logic of this code writen in "readme.md"file
-// const loginuser = asynchandler(async(req,res)=>{
-//       //req body ->data
-//       const {email,userName,password} = req.body
+const loginuser = asynchandler(async(req,res)=>{
+      //req body ->data
+      const {email,username,password} = req.body
 
-//       if (!email && !userName) {
-//          throw new ApiError(400,"userName or email is required")
-//       }
-//       //if we have this both then can login,for that we have to find the user in database,code is below
-//      const user = await User.findOne({ //User is imported from model.js file
-//          $or : [{userName},{email}] //hear we can pass obj's in array 
-//       })
+      if (!email && !username) {
+         throw new ApiError(400,"userName or email is required")
+      }
+      //if we have this both then can login,for that we have to find the user in database,code is below
+     const user = await User.findOne({ //User is imported from model.js file
+         $or : [{username},{email}] //hear we can pass obj's in array 
+      })
 
-//       if (!user) { //if user not found then is will get exicute 
-//          throw new ApiError( 404,"user does not exist");
+      if (!user) { //if user not found then is will get exicute 
+         throw new ApiError( 404,"user does not exist");
          
-//       }
+      }
 
-//       //if we get user then check passeord
-//       const isPasswordvalid =await user.isPasswordCorrect(password) //we gate the password from ispasswordCorrect which is from "user.model.js" file
+      //if we get user then check passeord
+      const isPasswordvalid =await user.isPasswordCorrect(password) //we gate the password from ispasswordCorrect which is from "user.model.js" file
       
-//       if (!isPasswordvalid) { //if pssword is invalid 
-//          throw new ApiError( 401,"password id incorrect")
-//       }
+      if (!isPasswordvalid) { //if pssword is invalid 
+         throw new ApiError( 401,"password id incorrect")
+      }
 
-//       //after chacking password make access and refresh token 
-//       //we make methood at top of the code name as:"generateAccessAndRefereshTokens" 
-//       const {accessToken,ReferenceError}= await generateAccessAndRefereshTokens(user._id)
+      //after chacking password make access and refresh token 
+      //we make methood at top of the code name as:"generateAccessAndRefereshTokens" 
+      const {accessToken,refreshToken}= await generateAccessAndRefereshTokens(user._id)
 
-//       const logedInUser=await User.findById(user.id).select("-password -refreshToken")
+      const logedInUser=await User.findById(user.id).select("-password -refreshToken")
 
-//       //sending cookies
-//       const optins={
-//          httpOnly:true,
-//          secure:true
-//       }
+      //sending cookies
+      const optins={
+         httpOnly:true,
+         secure:true
+      }
       
-//       return res .status(200)
-//       .cookie("accessToken",accessToken,optins) //cookies method we get from aur "cookie-parser"(see)
-//       .cookie("refreshToken",refreshToken,optins)
-//       .json(
-//          new ApiResponse(
-//             200,
-//             {
-//                 user:logedInUser,accessToken,refreshToken  
-//             },
-//             "user logedin successfully"
-//          )
-//       )
+      return res .status(200)
+      .cookie("accessToken",accessToken,optins) //cookies method we get from aur "cookie-parser"(see)
+      .cookie("refreshToken",refreshToken,optins)
+      .json(
+         new ApiResponse(
+            200,
+            {
+                user:logedInUser,accessToken,refreshToken  
+            },
+            "user logedin successfully"
+         )
+      )
 
-// })
+})
 
 // //code for logout 
-// const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing refreshToken from DB
-//    await User.findByIdAndUpdate(
-//       req.user._id, //finding id
-//       {
-//          $set:{   //this is mongoose operatore to cange or update
-//             refreshToken: undefined
-//          } 
-//       },
-//       {
-//          new:true     //using this we gate nwe value in response,after undefin the token
-//       } 
-//    ) 
-//    //cookise
-//    const optins={
-//       httpOnly:true,
-//       secure:true
-//    }
-//    //now clare the cookies
-//     return res
-//     .status(200)
-//     .clearCookies("accessToken",optins)
-//     .clearCookies("refreshToken",optins)
-//     .json(new ApiResponse(200,{},"user logrd out"))
-// }) 
+const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing refreshToken from DB
+   await User.findByIdAndUpdate(
+      req.user._id, //finding id
+      {
+         $set:{   //this is mongoose operatore to cange or update
+            refreshToken: undefined
+         } 
+      },
+      {
+         new:true     //using this we gate nwe value in response,after undefin the token
+      } 
+   ) 
+   //cookise
+   const optins={
+      httpOnly:true,
+      secure:true
+   }
+   //now clare the cookies
+    return res
+    .status(200)
+    .clearCookies("accessToken",optins)
+    .clearCookies("refreshToken",optins)
+    .json(new ApiResponse(200,{},"user logged out"))
+}) 
 
 // //code for refresh access Token //for be logedin continue login user 
 // const refreshAccessToken = asynchandler(async(req,res)=>
@@ -218,8 +218,8 @@ const registerUser = asynchandler(async(req,res) =>{
 
 export{
    registerUser,
-   // loginuser,
-   // logoutUser
+   loginuser,
+   logoutUser
 }
 
 
