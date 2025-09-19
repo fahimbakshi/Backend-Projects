@@ -182,16 +182,16 @@ const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing re
       } 
    ) 
    //cookise
-   const optins={
+   const options={
       httpOnly:true,
       secure:true
    }
    //now clare the cookies
-    return res
-    .status(200)
-    .clearCookies("accessToken",optins)
-    .clearCookies("refreshToken",optins)
-    .json(new ApiResponse(200,{},"user logged out"))
+   return res
+   .status(200)
+   .clearCookie("accessToken", options)
+   .clearCookie("refreshToken", options)
+   .json(new ApiResponse(200, {}, "user logged out"))
 }) 
 
 // //code for refresh access Token //for be logedin continue login user 
