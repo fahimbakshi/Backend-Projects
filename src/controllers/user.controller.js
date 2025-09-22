@@ -1,7 +1,7 @@
 import { asynchandler } from "../utils/asynchandler.js"; //we taken the asynchandler.js filr from utils folder
 import {ApiError} from  "../utils/ApiError.js";
 import {User} from "../models/user.model.js";
-import{uploadOnCloudnary} from "../utils/cloudnary.js"
+import {uploadOnCloudnary} from "../utils/cloudnary.js"
 import{ApiResponse} from "../utils/ApiResponse.js"; //to return response at the end  
 import jwt from "jsonwebtoken"
 
@@ -67,24 +67,21 @@ const registerUser = asynchandler(async(req,res) =>{
      }
    //   console.log(req.file);
 
-
-
     //  check fro images ,check for avater
-     const avatarLocalPath=req.files?.avatar[0]?.path //multer give the path of image/avatar //check every code using cansole.log
+     const avatarLocalPath=req.files?.avatar[0]?.path; //multer give the path of image/avatar //check every code using cansole.log
     //  const coverImageLocalPath=req.files?coverImage[0]?.path   //after comenting this code get error free,see video for understing
 
         let coverImageLocalPath;
     if(req.files && Array.isArray(req.files.coverImage) && 
         req.files.coverImage.length>0){
-        coverImageLocalPath = req.files.coverImage[0].path
+        coverImageLocalPath = req.files.coverImage[0].path;
     } //this code will resolve the error of "const coverImage"
 
      if (!avatarLocalPath) {
         throw new ApiError(400,"avatar file is required");
      }
-
      const avatar = await uploadOnCloudnary(avatarLocalPath);
-     const coverImage= await uploadOnCloudnary(coverImageLocalPath) //this can throw error,for this we write new method down
+     const coverImage= await uploadOnCloudnary(coverImageLocalPath); //this can throw error,for this we write new method down
     
      if(!avatar ){  //avatr validation
         throw new ApiError(400,"avatar file is required");
@@ -240,11 +237,120 @@ const refreshAccessToken = asynchandler(async(req,res)=>
      }
 })
 
+// update
+const changeCurrentPassword = asynchandler(async(req,res)=>{
+   const {oldpassword,newpassword} =req.body
+   
+   const user = await User.findById(req.user?._id)
+   const ispasswordCorrect =await user.isPasswordCorrect(oldpassword); //ispasswordCorrect we taken form the user model
+
+   if(!ispasswordCorrect){
+      throw new ApiError(400,"invalid old passwor");
+   }
+   // if password is correct then set new password
+   user.password =newpassword
+   await user.save({validateBeforeSave:false})
+
+   return res
+   .status(200)
+   .json(new ApiResponse(200,{},"Password changed successfully"))
+})
+
+const getCurrentUser = asynchandler(async(req,res)=>{
+   return res
+   .status(200)
+   .json(new ApiResponse(
+       200 ,req.user,"current user fatch successfully"
+      )) //from hera we can get corrent user 
+})
+
+const updateAccountDetail = asynchandler(async(req,res)=>{
+   const {fullName,email} = req.body
+
+   if(!fullName || !email){
+      throw new ApiError(400,"All field are required");
+   }
+  const user = User.findByIdAndUpdate(
+   req.user?._id,
+   {
+      $set:{//hrar we use $set operator of js
+         fullName,
+         email:email      
+      }
+   },
+   {new:true} //after upadte we can see information
+).select("-password")
+
+   return res.status(200)
+   .json(new ApiResponse(200,user,"Account details updated successfully"))
+});
+
+const updateUserAvatar =asynchandler(async(req,res)=>{
+   const avatarLocalPath = req.file?.path;
+
+   if (!avatarLocalPath){
+      throw new ApiError(400,"avatar fiel is meassing");
+   }
+   const avatar = await uploadOnCloudnary(avatarLocalPath);
+
+   if (!avatar.url){
+      throw new ApiError(400,"error while uploding on avatar");
+   }
+   
+  const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+         $set:{
+            avatar: avatar.url
+         }
+      },
+      {new:true} 
+   ).select("-password")
+   
+   return res 
+   .status(200)
+   .json(new ApiResponse(200,user,"Avatar image uploded success fully"))
+} )
+const updateUserCoverimage =asynchandler(async(req,res)=>{
+   const CoverimageLocalPath = req.file?.path;
+
+   if (!CoverimageLocalPath){
+      throw new ApiError(400,"coverimaage fiel is meassing");
+   }
+
+
+                //TODO: delete old image - assignment
+
+
+   const coverImage = await uploadOnCloudnary(CoverimageLocalPath);
+
+   if (!coverImage.url){
+      throw new ApiError(400,"error while uploding on coverimage");
+   }
+   
+  const user = await User.findByIdAndUpdate(
+      req.user?._id,
+      {
+         $set:{
+            coverImage: coverImage.url
+         }
+      },
+      {new:true} 
+   ).select("-password")
+
+   return res 
+   .status(200)
+   .json(new ApiResponse(200,user,"cover image uploded success fully"))
+} )
+
 export{
    registerUser,
    loginuser,
    logoutUser,
-   refreshAccessToken
+   refreshAccessToken,
+   changeCurrentPassword,
+   getCurrentUser,
+   updateAccountDetail,
+   updateUserAvatar,
+   updateUserCoverimage,
 }
-
-
