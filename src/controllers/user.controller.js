@@ -4,6 +4,7 @@ import {User} from "../models/user.model.js";
 import {uploadOnCloudnary} from "../utils/cloudnary.js"
 import{ApiResponse} from "../utils/ApiResponse.js"; //to return response at the end  
 import jwt from "jsonwebtoken"
+import mongoose from "mongoose";
 
 //demo code:-
 
@@ -342,6 +343,95 @@ const updateUserCoverimage =asynchandler(async(req,res)=>{
    .status(200)
    .json(new ApiResponse(200,user,"cover image uploded success fully"))
 } )
+
+
+const grtuserchannelprofile =asynchandler(async(req,res)=>{
+   const {username} = req.params
+
+   if (!username?.trim){
+      throw new ApiError()
+   }
+
+   //this are the mongibd pipelines
+   const channel = await User.aggregate([   //this is used to do aggrigation which can also done by the mongodb
+      {
+         $match:{
+            username:username?.toLowerCase
+         }  
+      },
+      {
+         $lookup:{   //hear we gate subscriber
+            from:"subscriptions", //in model everythis is in lowercase and in pural form
+            localField:"_id",
+            foreignField:"channel",
+            as:"subscribers"
+         }
+      },
+      {
+          $lookup:{ //hear we gate channel we subscribed to 
+            from:"subscriptions", //in model everythis is in lowercase and in pural form
+            localField:"_id",
+            foreignField:"subscriber",
+            as:"subscribeedTo"
+         }
+      },
+      {
+         $addFields:{
+            Subscribercount:{  ///for counting subscrigber
+               $size:"$subscribers"  //for fields we use "$" symbol
+            },
+            channelsubscriberdTocount:{
+               $size:"$subscribeedTo"
+            },
+            isSubscribed:{  //for subscribe buton subscribed or not (logic)
+               $cnd:{
+                  if: {$in:[req.user?._id,"$subscribers.subscriber"]},
+                  then:true,
+                  else:false
+               }
+            }
+         }
+      },
+      {
+         $project:{  //form presenting fields on frounted for the user(things to show in frunt)
+            fullName:1,
+            username:1,
+            suSubscribercount:1,
+            channelsubscriberdTocount:1,
+            isSubscribed:1,
+            avatar:1,
+            coverImage:1,
+            email:1
+         }
+      }
+   ])
+   if(!channel?.length){
+      throw new ApiError(400,"channel dose not exist")
+   }
+   return res
+   .status(200)
+   .json(
+      new ApiResponse(200,channel[0],"user channel featched successfully")
+   )
+})
+
+const getwatchHistory = asynchandler(async(req,res)=>{
+   const user = await User.aggregate([
+      {
+         $match:{
+            _id: new mongoose.Types.ObjectId(req.User._id)
+         }
+      },
+      {
+         $lookup:{
+            from:"Video",
+            localField:"watchHistory",
+            foreignField:"_id",
+            as:"watchHistory"
+         }
+      }
+   ])
+})
 
 export{
    registerUser,
