@@ -171,8 +171,8 @@ const logoutUser = asynchandler(async(req,res)=>{ //this code is for removing re
    await User.findByIdAndUpdate(
       req.user._id, //finding id
       {
-         $set:{   //this is mongoose operatore to cange or update
-            refreshToken: undefined
+         $unset:{   //this is mongoose operatore to cange or update
+            refreshToken: 1 //this removes the fields from document 
          } 
       },
       {
@@ -312,6 +312,7 @@ const updateUserAvatar =asynchandler(async(req,res)=>{
    .status(200)
    .json(new ApiResponse(200,user,"Avatar image uploded success fully"))
 } )
+
 const updateUserCoverimage =asynchandler(async(req,res)=>{
    const CoverimageLocalPath = req.file?.path;
 
@@ -345,7 +346,7 @@ const updateUserCoverimage =asynchandler(async(req,res)=>{
 } )
 
 
-const grtuserchannelprofile =asynchandler(async(req,res)=>{
+const getuserchannelprofile =asynchandler(async(req,res)=>{
    const {username} = req.params
 
    if (!username?.trim){
@@ -415,23 +416,60 @@ const grtuserchannelprofile =asynchandler(async(req,res)=>{
    )
 })
 
-const getwatchHistory = asynchandler(async(req,res)=>{
-   const user = await User.aggregate([
-      {
-         $match:{
-            _id: new mongoose.Types.ObjectId(req.User._id)
-         }
-      },
-      {
-         $lookup:{
-            from:"Video",
-            localField:"watchHistory",
-            foreignField:"_id",
-            as:"watchHistory"
-         }
-      }
-   ])
+const getWatchHistory = asynchandler(async(req, res) => {
+    const user = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup: {
+                from: "video",
+                localField: "watchHistory",
+                foreignField: "_id",
+                as: "watchHistory",
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: "users",
+                            localField: "owner",
+                            foreignField: "_id",
+                            as: "owner",
+                            pipeline: [  //watervar ve do inthis pipeline will go in owner field( as: "owner")
+                                {
+                                    $project: {
+                                        fullName: 1,
+                                        username: 1,
+                                        avatar: 1
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        $addFields:{
+                            owner:{
+                                $first: "$owner"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ])
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(
+            200,
+            user[0].watchHistory,
+            "Watch history fetched successfully"
+        )
+    )
 })
+
 
 export{
    registerUser,
@@ -442,5 +480,7 @@ export{
    getCurrentUser,
    updateAccountDetail,
    updateUserAvatar,
+   getuserchannelprofile,
    updateUserCoverimage,
+   getWatchHistory,
 }
