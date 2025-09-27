@@ -385,7 +385,7 @@ const getuserchannelprofile =asynchandler(async(req,res)=>{
                $size:"$subscribeedTo"
             },
             isSubscribed:{  //for subscribe buton subscribed or not (logic)
-               $cnd:{
+               $cond:{
                   if: {$in:[req.user?._id,"$subscribers.subscriber"]},
                   then:true,
                   else:false

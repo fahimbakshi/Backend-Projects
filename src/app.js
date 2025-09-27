@@ -19,10 +19,11 @@ app.use(cookieParser())//to access the cookies of user by server
 
 //routes import from routes folder
 import userRouter from "./routes/user.routes.js"
-
+import videoRouter from "./routes/video.router.js"
 
 //routes declaration (imp)
 app.use("/api/v1/users",userRouter) //this call routes folder and  run the routes which is writen in that file
+app.use("/api/v1/video",videoRouter)
 
 export {app} 
 
