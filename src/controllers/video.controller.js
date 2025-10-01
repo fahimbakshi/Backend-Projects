@@ -4,7 +4,8 @@ import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
 import {asyncHandler} from "../utils/asyncHamdler.js"
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import { uploadOnCloudnary } from "../utils/cloudnary.js"
+
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
@@ -64,7 +65,40 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
     const { title, description} = req.body
     // TODO: get video, upload to cloudinary, create video
-})
+    if (!title?.trim() || !description?.trim()) {
+    throw new ApiError(400, "Title and description are required");
+  }
+
+  // Multer files
+  const videoLocalPath = req.files?.videoFile?.[0]?.path;
+  const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
+
+  if (!videoLocalPath || !thumbnailLocalPath) {
+    throw new ApiError(400, "Video file and thumbnail are required");
+  }
+
+  // Upload to Cloudinary
+  const uploadedVideo = await uploadOnCloudnary(videoLocalPath);
+  const uploadedThumbnail = await uploadOnCloudnary(thumbnailLocalPath);
+
+  if (!uploadedVideo?.url || !uploadedThumbnail?.url) {
+    throw new ApiError(500, "Cloudinary upload failed");
+  }
+
+  // Create video document in MongoDB
+  const video = await Video.create({
+    videoFile: uploadedVideo.url,
+    thumbnail: uploadedThumbnail.url,
+    title,
+    description,
+    duration: uploadedVideo.duration || 0,
+    owner: req.user._id,
+  });
+
+  return res.status(201).json(
+    new ApiResponse(201, video, "Video published successfully")
+  );
+});
 
 const getVideoById = asyncHandler(async (req, res) => {
     const { videoId } = req.params
