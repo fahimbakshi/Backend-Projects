@@ -3,13 +3,13 @@ import {Video} from "../models/video.model.js"
 import {User} from "../models/user.model.js"
 import {ApiError} from "../utils/ApiError.js"
 import {ApiResponse} from "../utils/ApiResponse.js"
-import {asyncHandler} from "../utils/asyncHamdler.js"
-import { uploadOnCloudnary } from "../utils/cloudnary.js"
+import {asyncHandler} from "../utils/asyncHandler.js"
+import { uploadOnCloudnary ,deleteFromCloudinary } from "../utils/cloudnary.js"
 
 
 
 const getAllVideos = asyncHandler(async (req, res) => {
-    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query
+    const { page = 1, limit = 10, query, sortBy, sortType, userId } = req.query;
     //TODO: get all videos based on query, sort, pagination
     
      // Ensure numbers
@@ -65,48 +65,65 @@ const getAllVideos = asyncHandler(async (req, res) => {
 const publishAVideo = asyncHandler(async (req, res) => {
   const { title, description } = req.body;
 
+  // ✅ Correct validation
   if (!title?.trim() || !description?.trim()) {
     throw new ApiError(400, "Title and description are required");
   }
 
+  // ✅ Correct field names (match router)
   const videoFileLocalPath = req.files?.videoFile?.[0]?.path;
   const thumbnailLocalPath = req.files?.thumbnail?.[0]?.path;
 
-  if (!videoFileLocalPath) {
-    throw new ApiError(400, "Video file is required");
-  }
-  if (!thumbnailLocalPath) {
-    throw new ApiError(400, "Thumbnail is required");
+  if (!videoFileLocalPath || !thumbnailLocalPath) {
+    throw new ApiError(400, "Video file and thumbnail are required");
   }
 
-  const videoFile = await uploadOnCloudnary(videoFileLocalPath);
-  const thumbnail = await uploadOnCloudnary(thumbnailLocalPath);
+  // ✅ Upload options
+  const options = {
+    resource_type: "auto",
+    folder: "VideoTube/videos",
+  };
 
-  if (!videoFile) {
-    throw new ApiError(500, "Video file upload failed");
+  let videoFile;
+  let thumbnail;
+
+  try {
+    // ✅ Upload both
+    videoFile = await uploadOnCloudinary(videoFileLocalPath, options);
+    thumbnail = await uploadOnCloudinary(thumbnailLocalPath, options);
+
+    if (!videoFile || !thumbnail) {
+      throw new ApiError(500, "File upload failed");
+    }
+
+    // ✅ Save in DB (matches your schema)
+    const video = await Video.create({
+      title: title.trim(),
+      description: description.trim(),
+      duration: videoFile.duration || 0,
+      videoFile: videoFile.secure_url,
+      thumbnail: thumbnail.secure_url,
+      views: 0,
+      owner: req.user?._id,
+      isPublished: true,
+    });
+
+    return res
+      .status(201)
+      .json(new ApiResponse(201, video, "Video uploaded successfully"));
+
+  } catch (error) {
+    // ✅ CLEANUP if anything fails
+    if (videoFile?.secure_url) {
+      await deleteFromCloudinary(videoFile.secure_url, "video");
+    }
+
+    if (thumbnail?.secure_url) {
+      await deleteFromCloudinary(thumbnail.secure_url, "image");
+    }
+
+    throw new ApiError(500, error.message || "Video upload failed");
   }
-  if (!thumbnail) {
-    throw new ApiError(500, "Thumbnail upload failed");
-  }
-
-  const video = await Video.create({
-    title: title.trim(),
-    description: description.trim(),
-    duration: videoFile.duration || 0,
-    videoFile: videoFile.secure_url, // ✅ use secure_url
-    thumbnail: thumbnail.secure_url,
-    views: 0,
-    owner: req.user?._id,
-    isPublished: true,
-  });
-
-  if (!video) {
-    throw new ApiError(500, "Video upload failed please try again");
-  }
-
-  return res
-    .status(201)
-    .json(new ApiResponse(201, video, "Video uploaded successfully"));
 });
 
 const getVideoById = asyncHandler(async (req, res) => {

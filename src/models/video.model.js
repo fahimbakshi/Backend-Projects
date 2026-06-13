@@ -8,8 +8,16 @@ const VideoSchema = new Schema(
       type: String, // Cloudinary URL
       required: true,
     },
+      videoPublic_id: {
+      type: String,
+      required: true,
+    },
     thumbnail: {
       type: String, // Cloudinary URL (corrected spelling from "thumnale")
+      required: true,
+    },
+      thumbnailPublic_id: {
+      type: String,
       required: true,
     },
     title: {
@@ -24,7 +32,11 @@ const VideoSchema = new Schema(
       type: Number,
       required: true,
     },
-    view: {
+    views: {
+      type: Number,
+      default: 0,
+    },
+      likes: {
       type: Number,
       default: 0,
     },

@@ -1,32 +1,27 @@
-//this will make method and export it // we use two method here
-//method -2 using promices
-const asynchandler = (requesthandler) => {
-      return (req, res, next) => {
-        // Fix the typo: change process.resolve to Promise.resolve
-        Promise.resolve(requesthandler(req, res, next)).catch((err) => next(err));
-      };
-    };
-    
-    export { asynchandler };
-    
-    
+const asyncHandler = (requestHandler) => {
+    return (req, res, next) => {
+        Promise.resolve(requestHandler(req, res, next)).catch((err) => next(err))
+    }
+}
+
+
+export { asyncHandler }
 
 
 
-// //this is higherorder function (for understing)
-// const asynchandler = (fn)=> ()=>{}
-// const asynchandler = (fn)=>async()=>{} //if we want to make async higherorder
 
-//method -1
+// const asyncHandler = () => {}
+// const asyncHandler = (func) => () => {}
+// const asyncHandler = (func) => async () => {}
 
-// const asynchandler = (fn) => async (req,res,next) => {
+
+// const asyncHandler = (fn) => async (req, res, next) => {
 //     try {
-//         await fn( req,res,next)
+//         await fn(req, res, next)
 //     } catch (error) {
-//         res.status(error.coed ||500).json({
-//             succes:false,
-//             message:err.message 
+//         res.status(err.code || 500).json({
+//             success: false,
+//             message: err.message
 //         })
 //     }
-// }//we take(ers,res,next) from the (fn) & also we can take array 
-
+// }

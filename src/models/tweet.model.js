@@ -1,6 +1,7 @@
 import mongoose , {Schema} from "mongoose";
 
-const tweetSchema = new Schema({
+const tweetSchema = new Schema(
+    {
     content:{
         tpye:String,
         require:true        
@@ -8,10 +9,15 @@ const tweetSchema = new Schema({
     owner:{
         tpye:Schema.Types.ObjectId,
         ref:"User "
-    }
+    },
+   likes: {
+      type: Number,
+      default: 0,
+    },
 },
-{
-    timestamps:true
-})
+  {
+    timestamps: true,
+  },
+);
 
 export const tweet = mongoose.model("tweet",tweetSchema);

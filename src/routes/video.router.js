@@ -1,31 +1,68 @@
 import { Router } from "express";
-import { deleteVideo,updateVideo,getVideoById,publishAVideo,getAllVideos } from "../controllers/video.controller.js";
+import { deleteVideo,updateVideo,getVideoById,publishAVideo,getAllVideos,togglePublishStatus } from "../controllers/video.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { validateHeaderName } from "http";
 
 const videoRouter = Router();
 
-// Example: public fetch
-videoRouter.route("/getAllvideo").get(verifyJWT,getAllVideos);
+//second method for route 2------------------------
+videoRouter.use(verifyJWT); // Apply verifyJWT middleware to all routes in this file
 
-videoRouter.post(
-  "/publish",
-  verifyJWT,
-  upload.fields([
+videoRouter
+  .route("/")
+  .get(getAllVideos)
+  .post(
+    upload.fields([
+      {
+        name: "video",
+        maxCount: 1,
+      },
+      {
+        name: "thumbnail",
+        maxCount: 1,
+      },
+    ]),
+    publishAVideo
+  );
 
-    { name: "videoFile", maxCount: 1 },
-    { name: "thumbnail", maxCount: 1 },
-  ]),
-  publishAVideo
-);
-videoRouter.route("/:videoId").get(verifyJWT,getVideoById);
-validateHeaderName    
-    .route("/:videoId")
-    .patch(upload.single("thumbnail"), updateVideo);
+videoRouter
+  .route("/:videoId")
+  .get(getVideoById)
+  .delete(deleteVideo)
+  .patch(upload.single("thumbnail"), updateVideo);
 
-Router.delete("/:videoId", verifyJWT, deleteVideo);
-// If you want to protect, just add verifyJWT
-// videoRouter.route("/").get(verifyJWT, getAllVideos);
+videoRouter.route("/toggle/publish/:videoId").patch(togglePublishStatus);
 
 export default videoRouter;
+
+// first method fo reoute 1------------------------
+
+// videoRouter.use(verifyJWT);
+// // Example: public fetch
+// videoRouter.route("/getAllvideo").get(verifyJWT,getAllVideos);
+
+// videoRouter.post(
+//   "/publish",
+//   verifyJWT,
+//   upload.fields([
+
+//     { name: "videoFile", maxCount: 1 },
+//     { name: "thumbnail", maxCount: 1 },
+//   ]),
+//   publishAVideo
+// );
+// videoRouter.route("/:videoId").get(verifyJWT,getVideoById);
+// // ✅ FIXED UPDATE ROUTE
+// videoRouter
+//   .route("/:videoId")
+//   .patch(verifyJWT, upload.single("thumbnail"), updateVideo);
+
+// // ✅ FIXED DELETE ROUTE
+// videoRouter
+//   .route("/:videoId")
+//   .delete(verifyJWT, deleteVideo);
+// // If you want to protect, just add verifyJWT
+// // videoRouter.route("/").get(verifyJWT, getAllVideos);
+
+// export default videoRouter;

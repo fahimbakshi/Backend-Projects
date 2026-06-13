@@ -1,7 +1,7 @@
 //this midelware is for logout , it will warify that user is present or not 
 
 import { ApiError } from "../utils/ApiError.js";
-import { asynchandler } from "../utils/asynchandler.js";
+import { asynchandler } from "../utils/asynchandler_copy.js";
 import { User } from "../models/user.model.js";
 import jwt from "jsonwebtoken"
 

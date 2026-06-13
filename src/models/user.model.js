@@ -50,7 +50,8 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
-
+//Don't use arrow functions here as they don't have this binding
+// and context is very imp in this cases
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 10);

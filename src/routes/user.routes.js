@@ -2,6 +2,7 @@ import { Router } from "express";
 import {  registerUser ,loginuser ,logoutUser,refreshAccessToken, changeCurrentPassword, getCurrentUser, updateAccountDetail, updateUserAvatar, updateUserCoverimage, getuserchannelprofile, getWatchHistory} from "../controllers/user.controller.js"; //this comr after route the .post registerUser)
 import {upload} from "../middlewares/multer.middleware.js" //taken from middlewares folder
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { validate } from "../middlewares/validation.middleware.js";
 
 const router = Router()
 
@@ -26,13 +27,13 @@ router.route("/login").post(loginuser);
 // //if we want to do some operation before run this method,we vant to varify jwt then just wirte "verifywjt"before logoutUser it is the work of middelware
 router.route("/logout").post(verifyJWT,logoutUser);//fater "varifyJWT"(from auth middelware)exicute then "nex()"method which is writen in "auth" middleware get run and "logoutUser" get exicute
 router.route("/refresh-token.").post(refreshAccessToken);
-router.route("/changePassword").post(verifyJWT,changeCurrentPassword);
+router.route("/changePassword").post( validate, verifyJWT,changeCurrentPassword);
 router.route("/currentUser").get(verifyJWT,getCurrentUser);
 router.route("/updateaccoutn").patch(verifyJWT,updateAccountDetail);
 
 //updating avatar taking single file
 router.route("/updateAvatar").patch(verifyJWT, upload.single("avatar"),updateUserAvatar);
-router.route("/updateCOnerimage").patch(verifyJWT,upload.single("coverImage"),updateUserCoverimage);
+router.route("/updateCoverimage").patch(verifyJWT,upload.single("coverImage"),updateUserCoverimage);
 
 //we are taking this router form params
 router.route("/c/:username").get(verifyJWT,getuserchannelprofile);

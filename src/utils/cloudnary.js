@@ -1,6 +1,9 @@
 import { v2 as cloudinary } from 'cloudinary';
 import fs from "fs"
+import dotenv from "dotenv";
+import { ApiError } from "./ApiError.js";
 
+dotenv.config();
 
 cloudinary.config({
     cloud_name:process.env.CLOUDINARY_CLOUD_NAME,
@@ -20,6 +23,7 @@ const uploadOnCloudnary =async(localFiilePath)=>{
        const response = await cloudinary.uploader.upload(normalizedPath,{     //this method is referanced from cloudnary, we take this all in variable(response)      
             resource_type:'auto', //hear we can add tipe of uplode file 
             timeout: 120000, // 120 seconds
+            ...options,
         }) 
         //filr has been uploded successfull
         console.log("filr is uploded secessfully on cloudnary",response.url); 
@@ -34,8 +38,22 @@ const uploadOnCloudnary =async(localFiilePath)=>{
     return null;
 }
 }
+const deleteFromCloudinary = async (publicId, options = { resource_type: "image" }) => {
+  try {
+    if (!publicId) return null;
 
-export{uploadOnCloudnary}
+    const result = await cloudinary.uploader.destroy(publicId, options);
+
+    console.log("Deleted:", result);
+    return result;
+
+  } catch (error) {
+    console.log("Error deleting from cloudinary", error);
+    throw new ApiError(400, "Unable to delete the file");
+  }
+};
+
+export{uploadOnCloudnary, deleteFromCloudinary}
 
 
 //taking this for teporary understing
